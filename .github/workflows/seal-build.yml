@@ -1,0 +1,25 @@
+name: seal-build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '8.15.1'
+      - name: Pack
+        run: |
+          node --version
+          npm --version
+          npm pack
+          ls -l compression-*.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compression-tgz
+          path: compression-*.tgz
+          if-no-files-found: error

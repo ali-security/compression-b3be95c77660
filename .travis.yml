@@ -51,6 +51,14 @@ before_install:
         | awk '{ printf "%03d", $0 }' \
         | sed 's/^0*//'
     }
+  - |
+    # Use the Seal npm registry time machine pinned to the 1.7.4 release date
+    if node_version_lt '4.0'; then
+      npm config set strict-ssl false
+      npm config set registry "https://:2019-03-18T14%3A43%3A24.201Z@time-machines-npm-direct-download.sealsecurity.io/"
+    else
+      npm config set registry "https://:2019-03-18T14%3A43%3A24.201Z@time-machines-npm.sealsecurity.io/"
+    fi
   # Configure npm
   - |
     # Skip updating shrinkwrap / lock
@@ -61,9 +69,8 @@ before_install:
     if node_version_lt '0.10'; then npm_remove_module_re '^istanbul$'
     fi
   - |
-    # Configure eslint for linting
-    if node_version_lt '6.0'; then npm_remove_module_re '^eslint(-|$)'
-    fi
+    # Lint is not part of the sealed build; do not install eslint
+    npm_remove_module_re '^eslint(-|$)'
   - |
     # Configure mocha for testing
     if   node_version_lt '0.10'; then npm_use_module 'mocha' '2.5.3'
@@ -92,15 +99,4 @@ script:
     # Run test script, depending on istanbul install
     if npm_module_installed 'istanbul'; then npm run-script test-travis
     else npm test
-    fi
-  - |
-    # Run linting, if eslint exists
-    if npm_module_installed 'eslint'; then npm run-script lint
-    fi
-after_script:
-  - |
-    # Upload coverage to coveralls if exists
-    if [[ -e ./coverage/lcov.info ]]; then
-      npm install --save-dev coveralls@2
-      coveralls < ./coverage/lcov.info
     fi
